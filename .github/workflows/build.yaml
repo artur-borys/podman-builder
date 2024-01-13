@@ -19,6 +19,9 @@ jobs:
       # Checks-out your repository under $GITHUB_WORKSPACE, so your job can access it
       - uses: actions/checkout@v3
 
+      - name: Set up QEMU
+        uses: docker/setup-qemu-action@v3
+
       - name: Buildah Action
         uses: redhat-actions/buildah-build@v2
         with:
@@ -26,3 +29,4 @@ jobs:
           tags: v1 ${{ github.sha }}
           containerfiles: |
             ./Containerfile.rocky
+          platforms: linux/amd64, linux/arm64
