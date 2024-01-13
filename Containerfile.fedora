@@ -2,7 +2,7 @@
 # * https://github.com/containers/buildah/blob/main/contrib/buildahimage/Containerfile
 # * https://github.com/containers/podman/blob/main/contrib/podmanimage/stable/Containerfile
 
-FROM registry.fedoraproject.org/fedora:latest
+FROM registry.fedoraproject.org/fedora:39
 
 # label "io.containers.capabilities"="CHOWN,DAC_OVERRIDE,FOWNER,FSETID,KILL,NET_BIND_SERVICE,SETFCAP,SETGID,SETPCAP,SETUID,CHOWN,DAC_OVERRIDE,FOWNER,FSETID,KILL,NET_BIND_SERVICE,SETFCAP,SETGID,SETPCAP,SETUID,SYS_CHROOT"
 
