@@ -1,0 +1,78 @@
+# This is a mix of:
+# * https://github.com/containers/buildah/blob/main/contrib/buildahimage/Containerfile
+# * https://github.com/containers/podman/blob/main/contrib/podmanimage/stable/Containerfile
+
+# FROM registry.fedoraproject.org/fedora:latest
+FROM rockylinux:9
+
+# label "io.containers.capabilities"="CHOWN,DAC_OVERRIDE,FOWNER,FSETID,KILL,NET_BIND_SERVICE,SETFCAP,SETGID,SETPCAP,SETUID,CHOWN,DAC_OVERRIDE,FOWNER,FSETID,KILL,NET_BIND_SERVICE,SETFCAP,SETGID,SETPCAP,SETUID,SYS_CHROOT"
+
+# When building for multiple-architectures in parallel using emulation
+# it's really easy for one/more dnf processes to timeout or mis-count
+# the minimum download rates.  Bump both to be extremely forgiving of
+# an overworked host.
+# RUN echo -e "\n\n# Added during image build" >> /etc/dnf/dnf.conf && \
+#   echo -e "minrate=10000\ntimeout=10\n" >> /etc/dnf/dnf.conf
+
+# Don't include container-selinux and remove
+# directories used by dnf that are just taking
+# up space.
+# TODO: rpm --setcaps... needed due to Fedora (base) image builds
+#       being (maybe still?) affected by
+#       https://bugzilla.redhat.com/show_bug.cgi?id=1995337#c3
+RUN dnf -y update && \
+  rpm --setcaps shadow-utils 2>/dev/null && \
+  dnf -y install buildah fuse-overlayfs podman nodejs git --exclude container-selinux && \
+  dnf -y clean all && \
+  rm -rf /var/cache /var/log/dnf* /var/log/yum.*
+
+# Define uid/gid ranges for our user https://github.com/containers/buildah/issues/3053
+RUN useradd build && \
+  echo -e "build:1:999\nbuild:1001:64535" > /etc/subuid && \
+  echo -e "build:1:999\nbuild:1001:64535" > /etc/subgid && \
+  mkdir -p /home/build/.local/share/containers && \
+  mkdir -p /home/build/.config/containers && \
+  chown -R build:build /home/build
+
+ARG _REPO_URL="https://raw.githubusercontent.com/containers/podman/main/contrib/podmanimage/stable"
+ADD $_REPO_URL/containers.conf /etc/containers/containers.conf
+ADD --chown=build:build $_REPO_URL/podman-containers.conf /home/build/.config/containers/containers.conf
+
+# Setup internal Buildah to pass secrets/subscriptions down from host to internal container
+RUN printf '/run/secrets/etc-pki-entitlement:/run/secrets/etc-pki-entitlement\n/run/secrets/rhsm:/run/secrets/rhsm\n' > /etc/containers/mounts.conf
+
+# Copy & modify the defaults to provide reference if runtime changes needed.
+# Changes here are required for running with fuse-overlay storage inside container.
+RUN sed -e 's|^#mount_program|mount_program|g' \
+  -e '/additionalimage.*/a "/var/lib/shared",' \
+  -e 's|^mountopt[[:space:]]*=.*$|mountopt = "nodev,fsync=0"|g' \
+  /etc/containers/storage.conf && \
+  chmod 644 /etc/containers/storage.conf && \
+  chmod 644 /etc/containers/containers.conf
+
+RUN mkdir -p /var/lib/shared/overlay-images \
+  /var/lib/shared/overlay-layers \
+  /var/lib/shared/vfs-images \
+  /var/lib/shared/vfs-layers && \
+  touch /var/lib/shared/overlay-images/images.lock && \
+  touch /var/lib/shared/overlay-layers/layers.lock && \
+  touch /var/lib/shared/vfs-images/images.lock && \
+  touch /var/lib/shared/vfs-layers/layers.lock
+
+# See:  https://github.com/containers/buildah/issues/4669
+# Copy & modify the config for the `build` user and remove the global
+# `runroot` and `graphroot` which current `build` user cannot access,
+# in such case storage will choose a runroot in `/var/tmp`.
+RUN sed -e 's|^#mount_program|mount_program|g' \
+  -e 's|^graphroot|#graphroot|g' \
+  -e 's|^runroot|#runroot|g' \
+  /etc/containers/storage.conf \
+  > /home/build/.config/containers/storage.conf && \
+  chown build:build /home/build/.config/containers/storage.conf
+
+VOLUME /var/lib/containers
+VOLUME /home/build/.local/share/containers
+
+# Set an environment variable to default to chroot isolation for RUN
+# instructions and "buildah run".
+ENV BUILDAH_ISOLATION=chroot
