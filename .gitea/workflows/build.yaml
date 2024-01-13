@@ -32,7 +32,7 @@ jobs:
             ./Containerfile.rocky
 
       - name: Build rocky-minimal image
-        id: build-image-rocky
+        id: build-image-rocky-minimal
         uses: redhat-actions/buildah-build@v2
         with:
           image: podman-builder
@@ -41,7 +41,7 @@ jobs:
             ./Containerfile.rocky-minimal
 
       - name: Build fedora image
-        id: build-image-rocky
+        id: build-image-fedora
         uses: redhat-actions/buildah-build@v2
         with:
           image: podman-builder

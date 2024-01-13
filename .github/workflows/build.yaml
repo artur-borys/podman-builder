@@ -24,31 +24,41 @@ jobs:
       # Checks-out your repository under $GITHUB_WORKSPACE, so your job can access it
       - uses: actions/checkout@v3
 
-      # - name: Log in to docker.io
-      #   uses: redhat-actions/podman-login@v1
-      #   with:
-      #     username: ${{ env.REGISTRY_USER }}
-      #     password: ${{ env.REGISTRY_PASSWORD }}
-      #     registry: ${{ env.IMAGE_REGISTRY }}
-
       - name: Set up QEMU
         uses: docker/setup-qemu-action@v3
 
-      - name: Buildah Action
-        id: build-image
+      - name: Build rocky image
+        id: build-image-rocky
         uses: redhat-actions/buildah-build@v2
         with:
           image: podman-builder
-          tags: v1 ${{ github.sha }}
+          tags: latest-rocky ${{ github.sha }}-rocky
           containerfiles: |
             ./Containerfile.rocky
-          platforms: linux/amd64, linux/arm64
 
-      - name: Push to docker.io
-        uses: redhat-actions/push-to-registry@v2
+      - name: Build rocky-minimal image
+        id: build-image-rocky-minimal
+        uses: redhat-actions/buildah-build@v2
         with:
-          image: ${{ steps.build-image.outputs.image }}
-          tags: ${{ steps.build-image.outputs.tags }}
-          registry: aborys
-          username: ${{ env.REGISTRY_USER }}
-          password: ${{ env.REGISTRY_PASSWORD }}
+          image: podman-builder
+          tags: latest-rocky-minimal ${{ github.sha }}-rocky-minimal
+          containerfiles: |
+            ./Containerfile.rocky-minimal
+
+      - name: Build fedora image
+        id: build-image-fedora
+        uses: redhat-actions/buildah-build@v2
+        with:
+          image: podman-builder
+          tags: latest-fedora ${{ github.sha }}-fedora
+          containerfiles: |
+            ./Containerfile.fedora
+
+      # - name: Push Rocky image to docker.io
+      #   uses: redhat-actions/push-to-registry@v2
+      #   with:
+      #     image: ${{ steps.build-image.outputs.image }}
+      #     tags: ${{ steps.build-image.outputs.tags }}
+      #     registry: aborys
+      #     username: ${{ env.REGISTRY_USER }}
+      #     password: ${{ env.REGISTRY_PASSWORD }}
