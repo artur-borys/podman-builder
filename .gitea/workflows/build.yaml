@@ -5,12 +5,15 @@ name: build
 # Controls when the workflow will run
 on:
   push:
+    branches:
+      - master
 # A workflow run is made up of one or more jobs that can run sequentially or in parallel
 jobs:
-  container:
-    image: aborys/podman-runner:v1
   # This workflow contains a single job called "build"
   build:
+    container:
+      image: aborys/podman-builder:v1
+      options: --security-opt label=disable --security-opt seccomp=unconfined --device /dev/fuse:rw
     # The type of runner that the job will run on
     runs-on: ubuntu-latest
 
@@ -19,12 +22,29 @@ jobs:
       # Checks-out your repository under $GITHUB_WORKSPACE, so your job can access it
       - uses: actions/checkout@v3
 
-      - name: Buildah Action
-        id: build-image
+      - name: Build rocky image
+        id: build-image-rocky
         uses: redhat-actions/buildah-build@v2
         with:
           image: podman-builder
-          tags: v1 ${{ github.sha }}
+          tags: latest-rocky ${{ github.sha }}-rocky
           containerfiles: |
             ./Containerfile.rocky
-          platforms: linux/amd64, linux/arm64
+
+      - name: Build rocky-minimal image
+        id: build-image-rocky
+        uses: redhat-actions/buildah-build@v2
+        with:
+          image: podman-builder
+          tags: latest-rocky-minimal ${{ github.sha }}-rocky-minimal
+          containerfiles: |
+            ./Containerfile.rocky-minimal
+
+      - name: Build fedora image
+        id: build-image-rocky
+        uses: redhat-actions/buildah-build@v2
+        with:
+          image: podman-builder
+          tags: latest-fedora ${{ github.sha }}-fedora
+          containerfiles: |
+            ./Containerfile.fedora
