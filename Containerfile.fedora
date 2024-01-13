@@ -76,3 +76,5 @@ VOLUME /home/build/.local/share/containers
 # Set an environment variable to default to chroot isolation for RUN
 # instructions and "buildah run".
 ENV BUILDAH_ISOLATION=chroot
+
+USER build:build

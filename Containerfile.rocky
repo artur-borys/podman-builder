@@ -3,7 +3,7 @@
 # * https://github.com/containers/podman/blob/main/contrib/podmanimage/stable/Containerfile
 
 # FROM registry.fedoraproject.org/fedora:latest
-FROM rockylinux:9-minimal
+FROM rockylinux:9
 
 # label "io.containers.capabilities"="CHOWN,DAC_OVERRIDE,FOWNER,FSETID,KILL,NET_BIND_SERVICE,SETFCAP,SETGID,SETPCAP,SETUID,CHOWN,DAC_OVERRIDE,FOWNER,FSETID,KILL,NET_BIND_SERVICE,SETFCAP,SETGID,SETPCAP,SETUID,SYS_CHROOT"
 
@@ -20,11 +20,10 @@ FROM rockylinux:9-minimal
 # TODO: rpm --setcaps... needed due to Fedora (base) image builds
 #       being (maybe still?) affected by
 #       https://bugzilla.redhat.com/show_bug.cgi?id=1995337#c3
-RUN printf "[main]\nexcludepkgs=container-selinux" > /etc/dnf/dnf.conf && \
-  microdnf -y update && \
+RUN dnf -y update && \
   rpm --setcaps shadow-utils 2>/dev/null && \
-  microdnf -y install buildah fuse-overlayfs podman nodejs git && \
-  microdnf -y clean all && \
+  dnf -y install buildah fuse-overlayfs podman nodejs git --exclude container-selinux && \
+  dnf -y clean all && \
   rm -rf /var/cache /var/log/dnf* /var/log/yum.*
 
 # Define uid/gid ranges for our user https://github.com/containers/buildah/issues/3053
@@ -77,3 +76,5 @@ VOLUME /home/build/.local/share/containers
 # Set an environment variable to default to chroot isolation for RUN
 # instructions and "buildah run".
 ENV BUILDAH_ISOLATION=chroot
+
+USER build:build
