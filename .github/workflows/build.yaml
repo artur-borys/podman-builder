@@ -16,6 +16,9 @@ on:
 jobs:
   # This workflow contains a single job called "build"
   build:
+    strategy:
+      matrix:
+        flavor: [rocky, rocky-minimal, fedora]
     # The type of runner that the job will run on
     runs-on: ubuntu-latest
 
@@ -27,56 +30,21 @@ jobs:
       - name: Set up QEMU
         uses: docker/setup-qemu-action@v3
 
-      - name: Build rocky image
+      - name: Build ${{ matrix.flavor }} image
         id: build-image-rocky
         uses: redhat-actions/buildah-build@v2
         with:
           image: podman-builder
-          tags: latest-rocky ${{ github.sha }}-rocky
+          tags: latest-${{ matrix.flavor }} ${{ github.sha }}-${{ matrix.flavor }}
           containerfiles: |
-            ./Containerfile.rocky
+            ./Containerfile.${{ matrix.flavor }}
+          platforms: linux/amd64, linux/arm64
 
-      - name: Build rocky-minimal image
-        id: build-image-rocky-minimal
-        uses: redhat-actions/buildah-build@v2
+      - name: Push ${{ matrix.flavor }} image to docker.io
+        uses: redhat-actions/push-to-registry@v2
         with:
           image: podman-builder
-          tags: latest-rocky-minimal ${{ github.sha }}-rocky-minimal
-          containerfiles: |
-            ./Containerfile.rocky-minimal
-
-      - name: Build fedora image
-        id: build-image-fedora
-        uses: redhat-actions/buildah-build@v2
-        with:
-          image: podman-builder
-          tags: latest-fedora ${{ github.sha }}-fedora
-          containerfiles: |
-            ./Containerfile.fedora
-
-      - name: Push rocky image to docker.io
-        uses: redhat-actions/push-to-registry@v2
-        with:
-          image: ${{ steps.build-image-rocky.outputs.image }}
-          tags: ${{ steps.build-image-rocky.outputs.tags }}
-          registry: aborys
-          username: ${{ env.REGISTRY_USER }}
-          password: ${{ env.REGISTRY_PASSWORD }}
-
-      - name: Push rocky-minimal image to docker.io
-        uses: redhat-actions/push-to-registry@v2
-        with:
-          image: ${{ steps.build-image-rocky-minimal.outputs.image }}
-          tags: ${{ steps.build-image-rocky-minimal.outputs.tags }}
-          registry: aborys
-          username: ${{ env.REGISTRY_USER }}
-          password: ${{ env.REGISTRY_PASSWORD }}
-
-      - name: Push fedora image to docker.io
-        uses: redhat-actions/push-to-registry@v2
-        with:
-          image: ${{ steps.build-image-fedora.outputs.image }}
-          tags: ${{ steps.build-image-fedora.outputs.tags }}
+          tags: latest-${{ matrix.flavor }} ${{ github.sha }}-${{ matrix.flavor }}
           registry: aborys
           username: ${{ env.REGISTRY_USER }}
           password: ${{ env.REGISTRY_PASSWORD }}
