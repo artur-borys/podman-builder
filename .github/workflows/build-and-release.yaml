@@ -26,9 +26,6 @@ jobs:
       # Checks-out your repository under $GITHUB_WORKSPACE, so your job can access it
       - uses: actions/checkout@v3
 
-      - name: Test
-        run: echo "latest-${{ matrix.flavor }} ${{ github.sha }}-${{ matrix.flavor }} ${{ startsWith(github.ref, 'refs/tags') && format('{0}-{1}', github.ref_name, matrix.flavor) || '' }}"
-
       - name: Set up QEMU
         uses: docker/setup-qemu-action@v3
 
