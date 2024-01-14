@@ -14,6 +14,14 @@ There are three flavors of the image, depending on the base image:
 - `rocky-minimal` - based on `rocky:9-minimal`. I recommend using this image for running the jobs requiring only nodejs, podman and buildah. Rocky minimal images contain `microdnf` instead of `dnf`, and you may encounter issues with that.
 - `fedora` - based on `fedora:39`, same as the original podman and buildah images. Size of this image is a lot bigger than Rocky based images. It takes a long time to build it for `arm64` on QEMU, so I may decide to remove it or provide only `amd64` variant.
 
+There are three tag variants:
+
+- `latest-${variant}` - the latest build of given flavor
+- `${github.sha}-${variant}` - specific git commit hash build
+- `${version}-${variant}` - specific version (i.e `v1.0.0`) build
+
+`latest` is not recommended. Version-based tag is better, but it's always the most secure to use the commit hash tag.
+
 ## How to use it
 
 If you're running `act_runner` via Docker (and I assume the same applies for Kubernetes, but I haven't tried it yet), it's important to:
@@ -79,8 +87,3 @@ You can see a full working workflow example in [.gitea/workflows/build.yaml](.gi
 I know that the built images have some high level vulnerabilities and I plan to fix them. At a first glance most of them look like issues with Node.js, which is unfortunately required by a lot of actions.
 
 The container itself runs as a `build` user by default.
-
-I've yet to master Github Actions in itself, so I'm not entirely sure how to create git tags and how to then use them for building images, so currently there are only two types of tags provided:
-
-- `latest-<flavor>` - the latest built version
-- `<git.sha>-<flavor>` - static image tag with the git commit SHA checksum, which can be used if you have to lock a specific version

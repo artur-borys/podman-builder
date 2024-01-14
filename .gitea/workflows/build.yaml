@@ -22,14 +22,11 @@ jobs:
       # Checks-out your repository under $GITHUB_WORKSPACE, so your job can access it
       - uses: actions/checkout@v3
 
-      - name: Echo git ref
-        run: echo ${{ gitea.ref_name }}
-
       - name: Build ${{ matrix.flavor }} image
         id: build-image-rocky
         uses: redhat-actions/buildah-build@v2
         with:
           image: podman-builder
-          tags: latest-${{ matrix.flavor }} ${{ github.sha }}-${{ matrix.flavor }}
+          tags: latest-${{ matrix.flavor }} ${{ github.sha }}-${{ matrix.flavor }} ${{ startsWith(gitea.ref, 'refs/tags') && format('{0}-{1}', gitea.ref_name, matrix.flavor) || '' }}
           containerfiles: |
             ./Containerfile.${{ matrix.flavor }}
