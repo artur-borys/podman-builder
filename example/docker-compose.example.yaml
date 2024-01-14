@@ -1,0 +1,23 @@
+services:
+  runner:
+    image: gitea/act_runner:nightly
+    restart: always
+    environment:
+      - GITEA_INSTANCE_URL=https://gitea.example.com
+      - GITEA_RUNNER_REGISTRATION_TOKEN_FILE=/run/secrets/registration_token
+      - GITEA_RUNNER_NAME=podman-runner
+      - CONFIG_FILE=/config.yaml
+    volumes:
+      - ./config.yaml:/config.yaml
+      - ./data:/data
+      - /var/run/docker.sock:/var/run/docker.sock
+    devices:
+      - /dev/fuse:/dev/fuse
+    security_opt:
+      - seccomp=unconfined
+    secrets:
+      - registration_token
+
+secrets:
+  registration_token:
+    file: ./registration_token # Put your registration token here

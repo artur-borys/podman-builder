@@ -22,31 +22,57 @@ If you're running `act_runner` via Docker (and I assume the same applies for Kub
 - bind `fuse` device via `--device /dev/fuse`
 - when running on Fedora/RHEL/CentOS/Rocky, or any OS with SELinux, you may also need to add `--security-opt label=disable`
 
+When act_runner spawns a container where a job will run, it also has to pass the same options as above, so now you have to make a choice:
+
+- add the options to act_runner config file, so that they will be automatically added to all containers
+- specify the options in `jobs.<JOB>.container.options`
+
+The first option might be less secure, but you can always have two runners - one with options in config file - for podman jobs, one without those options - for other jobs.
+Then you can assing jobs requiring podman or buildah to the first runner.
+
+If you want to configure your runner to use this `podman-runner` image, the `config.yaml` must contain this section (adapt it to your needs):
+
+```yaml
+runner:
+  labels:
+    - rocky-minimal:docker://aborys/podman-builder:latest-rocky-minimal
+    - rocky:docker://aborys/podman-builder:latest-rocky
+    - fedora:docker://aborys/podman-builder:latest-fedora
+
+container:
+  options: --security-opt label=disable --security-opt seccomp=unconfined --device /dev/fuse:rw
+```
+
 Example:
 
 ```bash
 docker run --rm -it \
   --security-opt seccomp=unconfined \
+  -v $PWD/config.yaml:/config.yaml
   --device /dev/fuse \
   -e GITEA_INSTANCE_URL='<<YOUR_GITEA_INSTANCE>>' \
+  -e CONFIG_FILE=/config.yaml \
   -e GITEA_RUNNER_REGISTRATION_TOKEN='<<YOUR_REGISTRATION_TOKEN>>' \
   --name runner \
   -v /var/run/docker.sock:/var/run/docker.sock \
   gitea/act_runner:nightly
 ```
 
-Then, you have to override the container image used by your jobs (I have yet to learn about runner labels):
+Alternatively, see [Docker Compose example](./example)
+
+You can then run jobs with this image:
 
 ```yaml
 jobs:
   <<JOB_NAME>>:
-    container:
-      image: aborys/podman-builder:latest-rocky-minimal
-      options: --security-opt label=disable --security-opt seccomp=unconfined --device /dev/fuse:rw
+    runs-on: rocky-minimal
+    # Add this if you didn't set container.options in config.yaml
+    # container:
+    #   options: --security-opt label=disable --security-opt seccomp=unconfined --device /dev/fuse:rw
     ...
 ```
 
-You can see a full working example in [.gitea/workflows/build.yaml](.gitea/workflows/build.yaml)
+You can see a full working workflow example in [.gitea/workflows/build.yaml](.gitea/workflows/build.yaml)
 
 ## Security
 
