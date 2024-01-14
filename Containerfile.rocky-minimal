@@ -7,13 +7,6 @@ FROM rockylinux:9-minimal
 
 # label "io.containers.capabilities"="CHOWN,DAC_OVERRIDE,FOWNER,FSETID,KILL,NET_BIND_SERVICE,SETFCAP,SETGID,SETPCAP,SETUID,CHOWN,DAC_OVERRIDE,FOWNER,FSETID,KILL,NET_BIND_SERVICE,SETFCAP,SETGID,SETPCAP,SETUID,SYS_CHROOT"
 
-# When building for multiple-architectures in parallel using emulation
-# it's really easy for one/more dnf processes to timeout or mis-count
-# the minimum download rates.  Bump both to be extremely forgiving of
-# an overworked host.
-# RUN echo -e "\n\n# Added during image build" >> /etc/dnf/dnf.conf && \
-#   echo -e "minrate=10000\ntimeout=10\n" >> /etc/dnf/dnf.conf
-
 # Don't include container-selinux and remove
 # directories used by dnf that are just taking
 # up space.
