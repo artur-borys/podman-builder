@@ -8,11 +8,10 @@ The image is based on official podman and buildah images:
 - https://github.com/containers/buildah/blob/main/contrib/buildahimage/Containerfile
 - https://github.com/containers/podman/blob/main/contrib/podmanimage/stable/Containerfile
 
-There are three flavors of the image, depending on the base image:
+There are two flavors of the image, depending on the base image:
 
 - `rocky` - based on `rocky:9` image. I recommend using this as a base image if you want to add more tools to it
 - `rocky-minimal` - based on `rocky:9-minimal`. I recommend using this image for running the jobs requiring only nodejs, podman and buildah. Rocky minimal images contain `microdnf` instead of `dnf`, and you may encounter issues with that.
-- `fedora` - based on `fedora:39`, same as the original podman and buildah images. Size of this image is a lot bigger than Rocky based images. It takes a long time to build it for `arm64` on QEMU, so I may decide to remove it or provide only `amd64` variant.
 
 There are three tag variants:
 
@@ -45,7 +44,6 @@ runner:
   labels:
     - rocky-minimal:docker://aborys/podman-builder:latest-rocky-minimal
     - rocky:docker://aborys/podman-builder:latest-rocky
-    - fedora:docker://aborys/podman-builder:latest-fedora
 
 container:
   options: --security-opt label=disable --security-opt seccomp=unconfined --device /dev/fuse:rw
