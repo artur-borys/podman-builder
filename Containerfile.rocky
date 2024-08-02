@@ -2,17 +2,10 @@
 # * https://github.com/containers/buildah/blob/main/contrib/buildahimage/Containerfile
 # * https://github.com/containers/podman/blob/main/contrib/podmanimage/stable/Containerfile
 
-# FROM registry.fedoraproject.org/fedora:latest
 FROM rockylinux:9
 
-# label "io.containers.capabilities"="CHOWN,DAC_OVERRIDE,FOWNER,FSETID,KILL,NET_BIND_SERVICE,SETFCAP,SETGID,SETPCAP,SETUID,CHOWN,DAC_OVERRIDE,FOWNER,FSETID,KILL,NET_BIND_SERVICE,SETFCAP,SETGID,SETPCAP,SETUID,SYS_CHROOT"
+LABEL "io.containers.capabilities"="CHOWN,DAC_OVERRIDE,FOWNER,FSETID,KILL,NET_BIND_SERVICE,SETFCAP,SETGID,SETPCAP,SETUID,CHOWN,DAC_OVERRIDE,FOWNER,FSETID,KILL,NET_BIND_SERVICE,SETFCAP,SETGID,SETPCAP,SETUID,SYS_CHROOT"
 
-# Don't include container-selinux and remove
-# directories used by dnf that are just taking
-# up space.
-# TODO: rpm --setcaps... needed due to Fedora (base) image builds
-#       being (maybe still?) affected by
-#       https://bugzilla.redhat.com/show_bug.cgi?id=1995337#c3
 RUN dnf -y update && \
   rpm --setcaps shadow-utils 2>/dev/null && \
   dnf -y install buildah fuse-overlayfs podman nodejs git --exclude container-selinux && \
@@ -27,7 +20,7 @@ RUN useradd build && \
   mkdir -p /home/build/.config/containers && \
   chown -R build:build /home/build
 
-ARG _REPO_URL="https://raw.githubusercontent.com/containers/podman/main/contrib/podmanimage/stable"
+ARG _REPO_URL="https://raw.githubusercontent.com/containers/image_build/main/podman"
 ADD $_REPO_URL/containers.conf /etc/containers/containers.conf
 ADD --chown=build:build $_REPO_URL/podman-containers.conf /home/build/.config/containers/containers.conf
 

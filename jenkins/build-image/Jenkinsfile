@@ -1,0 +1,89 @@
+pipeline{
+    agent{
+        kubernetes {
+            inheritFrom "docker-template"
+            yamlMergeStrategy merge()
+            yaml dockerBuilderAgent.getYaml()
+            defaultContainer "builder"
+        }
+    }
+    stages {
+        stage("Build docker images") {
+            parallel {
+                stage("Build rocky image") {
+                    agent {
+                        kubernetes {
+                            inheritFrom "docker-template"
+                            yamlMergeStrategy merge()
+                            yaml dockerBuilderAgent.getYaml()
+                            defaultContainer "builder"
+                        }
+                    }
+                    
+                    steps {
+                        script {
+                            checkout scmGit(
+                                branches: [
+                                    [
+                                        name: '*/master'
+                                    ]
+                                ],
+                                userRemoteConfigs: [
+                                    [
+                                        credentialsId: 'gitea',
+                                        url: 'https://gitea.arturb.xyz/artur-borys/podman-builder.git'
+                                    ]
+                                ]
+                            )
+                        }
+                        sh """
+                            docker build -t podman-builder:latest-rocky -f Containerfile.rocky .
+                        """
+                    }
+                }
+                stage("Build rocky-minimal image") {
+                    agent {
+                        kubernetes {
+                            inheritFrom "docker-template"
+                            yamlMergeStrategy merge()
+                            yaml dockerBuilderAgent.getYaml()
+                            defaultContainer "builder"
+                        }
+                    }
+                    
+                    steps {
+                        script {
+                            checkout scmGit(
+                                branches: [
+                                    [
+                                        name: '*/master'
+                                    ]
+                                ],
+                                userRemoteConfigs: [
+                                    [
+                                        credentialsId: 'gitea',
+                                        url: 'https://gitea.arturb.xyz/artur-borys/podman-builder.git'
+                                    ]
+                                ]
+                            )
+                        }
+                        sh """
+                            docker build -t podman-builder:latest-rocky-minimal -f Containerfile.rocky-minimal .
+                        """
+                    }
+                }
+            }
+        }
+    }
+    post{
+        always{
+            echo "========always========"
+        }
+        success{
+            echo "========pipeline executed successfully ========"
+        }
+        failure{
+            echo "========pipeline execution failed========"
+        }
+    }
+}
