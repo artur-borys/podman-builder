@@ -5,8 +5,8 @@ I couldn't find any existing image from trusted entities, which has both podman 
 
 The image is based on official podman and buildah images:
 
-- https://github.com/containers/buildah/blob/main/contrib/buildahimage/Containerfile
-- https://github.com/containers/podman/blob/main/contrib/podmanimage/stable/Containerfile
+- https://github.com/containers/image_build/tree/main/podman
+- https://github.com/containers/image_build/tree/main/buildah
 
 There are two flavors of the image, depending on the base image:
 
