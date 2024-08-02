@@ -5,6 +5,8 @@ name: build
 # Controls when the workflow will run
 on:
   push:
+    branches:
+      - "**"
     tags:
       - "**"
 
@@ -14,13 +16,13 @@ jobs:
   build:
     strategy:
       matrix:
-        flavor: [rocky, rocky-minimal, fedora]
+        flavor: [rocky, rocky-minimal]
     runs-on: rocky-minimal
 
     # Steps represent a sequence of tasks that will be executed as part of the job
     steps:
       # Checks-out your repository under $GITHUB_WORKSPACE, so your job can access it
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
 
       - name: Build ${{ matrix.flavor }} image
         id: build-image-rocky
