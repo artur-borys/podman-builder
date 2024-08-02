@@ -9,7 +9,6 @@ on:
   push:
     branches:
       - master
-      - jenkins
 
 env:
   REGISTRY_USER: aborys
