@@ -9,6 +9,7 @@ on:
   push:
     branches:
       - master
+      - jenkins
 
 env:
   REGISTRY_USER: aborys
@@ -26,7 +27,8 @@ jobs:
     # Steps represent a sequence of tasks that will be executed as part of the job
     steps:
       # Checks-out your repository under $GITHUB_WORKSPACE, so your job can access it
-      - uses: actions/checkout@v3
+      - name: Checkout repository
+        uses: actions/checkout@v4
 
       - name: Set up QEMU
         uses: docker/setup-qemu-action@v3
@@ -41,11 +43,11 @@ jobs:
             ./Containerfile.${{ matrix.flavor }}
           platforms: linux/amd64, linux/arm64
 
-      - name: Push ${{ matrix.flavor }} image to docker.io
-        uses: redhat-actions/push-to-registry@v2
-        with:
-          image: podman-builder
-          tags: latest-${{ matrix.flavor }} ${{ github.sha }}-${{ matrix.flavor }} ${{ startsWith(github.ref, 'refs/tags') && format('{0}-{1}', github.ref_name, matrix.flavor) || '' }}
-          registry: aborys
-          username: ${{ env.REGISTRY_USER }}
-          password: ${{ env.REGISTRY_PASSWORD }}
+      # - name: Push ${{ matrix.flavor }} image to docker.io
+      #   uses: redhat-actions/push-to-registry@v2
+      #   with:
+      #     image: podman-builder
+      #     tags: latest-${{ matrix.flavor }} ${{ github.sha }}-${{ matrix.flavor }} ${{ startsWith(github.ref, 'refs/tags') && format('{0}-{1}', github.ref_name, matrix.flavor) || '' }}
+      #     registry: aborys
+      #     username: ${{ env.REGISTRY_USER }}
+      #     password: ${{ env.REGISTRY_PASSWORD }}

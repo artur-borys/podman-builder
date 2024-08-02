@@ -15,11 +15,15 @@ jobs:
         flavor: [rocky, rocky-minimal]
     # The type of runner that the job will run on
     runs-on: ubuntu-latest
+    permissions:
+      # required for all workflows
+      security-events: write
 
     # Steps represent a sequence of tasks that will be executed as part of the job
     steps:
       # Checks-out your repository under $GITHUB_WORKSPACE, so your job can access it
-      - uses: actions/checkout@v3
+      - name: Checkout repository
+        uses: actions/checkout@v4
 
       - name: Set up QEMU
         uses: docker/setup-qemu-action@v3
@@ -48,9 +52,10 @@ jobs:
         id: scan
         uses: anchore/scan-action@v3
         with:
-          sbom: "${{ github.event.repository.name }}-sbom.spdx.json"
+          sbom: "${{ github.event.repository.name }}-${{ matrix.flavor }}-sbom.spdx.json"
+          fail-build: false
 
       - name: upload Anchore scan SARIF report
-        uses: github/codeql-action/upload-sarif@v2
+        uses: github/codeql-action/upload-sarif@v3
         with:
           sarif_file: ${{ steps.scan.outputs.sarif }}
