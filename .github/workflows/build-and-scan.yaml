@@ -47,6 +47,7 @@ jobs:
           file: ./image
           format: spdx-json
           output-file: "${{ github.event.repository.name }}-${{ matrix.flavor }}-sbom.spdx.json"
+          artifact-name: "${{ matrix.flavor }}.spdx.json"
 
       - name: Scan SBOM
         id: scan
