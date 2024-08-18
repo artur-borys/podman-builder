@@ -44,6 +44,7 @@ jobs:
         with:
           image: podman:podman-builder:latest-${{ matrix.flavor }}
           fail-build: false
+          only-fixed: true
 
       - name: upload Anchore scan SARIF report
         uses: github/codeql-action/upload-sarif@v3
