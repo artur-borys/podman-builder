@@ -42,7 +42,7 @@ jobs:
         id: scan
         uses: anchore/scan-action@v3
         with:
-          image: podman://podman-builder:latest-${{ matrix.flavor }}
+          image: podman:podman-builder:latest-${{ matrix.flavor }}
           fail-build: false
 
       - name: upload Anchore scan SARIF report
