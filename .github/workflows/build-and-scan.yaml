@@ -38,22 +38,11 @@ jobs:
             ./Containerfile.${{ matrix.flavor }}
           platforms: linux/amd64, linux/arm64
 
-      - name: Save image to file
-        run: podman save podman-builder:latest-${{ matrix.flavor }} -o ./image
-
-      - name: Create SBOM
-        uses: anchore/sbom-action@v0
-        with:
-          file: ./image
-          format: spdx-json
-          output-file: "${{ github.event.repository.name }}-${{ matrix.flavor }}-sbom.spdx.json"
-          artifact-name: "${{ matrix.flavor }}.spdx.json"
-
       - name: Scan SBOM
         id: scan
         uses: anchore/scan-action@v3
         with:
-          sbom: "${{ github.event.repository.name }}-${{ matrix.flavor }}-sbom.spdx.json"
+          image: podman://podman-builder:latest-${{ matrix.flavor }}
           fail-build: false
 
       - name: upload Anchore scan SARIF report
